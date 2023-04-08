@@ -1,8 +1,30 @@
-const router = require('express').Router();
+const router = require("express").Router();
+const bcrypt = require("bcryptjs");
+const utils = require("../../utils");
+const {
+  usernameValidation,
+  passwordValidation,
+  payloadValidation,
+} = require("./auth-middleware");
+const { getAll, getByUser, insertUser } = require("./auth-model");
+router.post(
+  "/register",
 
-router.post('/register', (req, res) => {
-  res.end('kayıt olmayı ekleyin, lütfen!');
-  /*
+  payloadValidation,
+  async (req, res, next) => {
+    try {
+      const model = {
+        username: req.body.username,
+        password: bcrypt.hashSync(req.body.password, 8),
+        role_name: req.body.role_name == "admin" ? "admin" : "user",
+      };
+      let inserted = await insertUser(model);
+      res.status(201).json(inserted);
+    } catch (error) {
+      next(error);
+    }
+
+    /*
     EKLEYİN
     Uçnoktanın işlevselliğine yardımcı olmak için middlewarelar yazabilirsiniz.
     2^8 HASH TURUNU AŞMAYIN!
@@ -27,11 +49,32 @@ router.post('/register', (req, res) => {
     4- Kullanıcı adı alınmışsa BAŞARISIZ kayıtta,
       şu mesajı içermelidir: "username alınmış".
   */
-});
+  }
+);
 
-router.post('/login', (req, res) => {
-  res.end('girişi ekleyin, lütfen!');
-  /*
+router.post(
+  "/login",
+  payloadValidation,
+  usernameValidation,
+  passwordValidation,
+
+  async (req, res, next) => {
+    try {
+      const model = {
+        username: req.body.username,
+        role_name: req.profile.role_name,
+      };
+
+      const token = utils.createHashedPassword(model, "1d");
+      res.json({
+        message: `welcome, ${model.username}`,
+        token: token,
+      });
+    } catch (error) {
+      next(error);
+    }
+
+    /*
     EKLEYİN
     Uçnoktanın işlevselliğine yardımcı olmak için middlewarelar yazabilirsiniz.
 
@@ -54,6 +97,7 @@ router.post('/login', (req, res) => {
     4- "username" db de yoksa ya da "password" yanlışsa BAŞARISIZ giriş,
       şu mesajı içermelidir: "geçersiz kriterler".
   */
-});
+  }
+);
 
 module.exports = router;
