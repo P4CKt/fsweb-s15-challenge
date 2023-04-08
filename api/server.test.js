@@ -5,8 +5,6 @@ const server = require("./server");
 beforeAll(async () => {
   await db.migrate.rollback();
   await db.migrate.latest();
-});
-beforeEach(async () => {
   await db.seed.run();
 });
 
@@ -70,11 +68,6 @@ describe("User register", () => {
 describe("User Login", () => {
   it("[5] Login yapılabiliyor mu?", async () => {
     let sampleUser = { username: "p4ck8", password: "1234" };
-
-    const register = await supertest(server)
-      .post("/api/auth/register")
-      .send(sampleUser);
-    register;
     const res = await supertest(server)
       .post("/api/auth/login")
       .send(sampleUser);
@@ -90,11 +83,6 @@ describe("User Login", () => {
   });
   it("[7] Admin olmayan kullanıcı bilmeceleri görebiliyor mu?", async () => {
     let sampleUser = { username: "p4ck8", password: "1234" };
-
-    const register = await supertest(server)
-      .post("/api/auth/register")
-      .send(sampleUser);
-    register;
     const login = await supertest(server)
       .post("/api/auth/login")
       .send(sampleUser);
